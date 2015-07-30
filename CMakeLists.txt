@@ -27,7 +27,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 qt5_generate_moc(main.cpp main.moc)
 
 # Tell CMake to create the helloworld executable
-add_executable(testUsb main.cpp usbserver.cpp usbdevice.cpp)
+add_executable(testUsb main.cpp usbserver.cpp)
 
 #Link the helloworld executable to the Qt 5 widgets library.
 target_link_libraries(testUsb Qt5::Widgets ${LIBUSB_1_LIBRARIES})

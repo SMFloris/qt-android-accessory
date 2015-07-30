@@ -1,8 +1,25 @@
+/*
+ * Copyright (C) 2015 Floris-Andrei Stoica-Marcu <floris.sm@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
 #include "usbserver.h"
 
 #include <QDebug>
 #include <QString>
-#include "usbdevice.h"
 
 #define IN 0x85
 #define OUT 0x07
@@ -38,7 +55,6 @@ static void receive_callback(libusb_transfer* transfer)
 
 static int attach_callback (libusb_context *ctx, libusb_device *dev, libusb_hotplug_event event, void *user_data)
 {
-    qDebug()<<"Device attached!";
     UsbServer *server = (UsbServer*) user_data;
     server->attach(dev);
 
@@ -165,7 +181,7 @@ void UsbServer::detach(libusb_device* dev)
 
     rc = libusb_get_device_descriptor(dev, &desc);
     if (LIBUSB_SUCCESS != rc) {
-        fprintf (stderr, "Error getting device descriptor\n");
+        qWarning()<<"Error getting device descriptor";
     }
 
     printf ("Device detach: %04x:%04x\n", desc.idVendor, desc.idProduct);
@@ -186,7 +202,7 @@ int UsbServer::init()
     libusb_init (NULL);
 
     if (!libusb_has_capability (LIBUSB_CAP_HAS_HOTPLUG)) {
-        printf ("Hotplug not supported by this build of libusb\n");
+        qWarning()<<"Hotplug not supported by this build of libusb";
         libusb_exit (NULL);
         return EXIT_FAILURE;
     }
@@ -194,7 +210,7 @@ int UsbServer::init()
     rc = libusb_hotplug_register_callback (NULL, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED, LIBUSB_HOTPLUG_ENUMERATE, vendor_id,
                                            product_id, class_id, attach_callback, this, &hp[0]);
     if (LIBUSB_SUCCESS != rc) {
-        fprintf (stderr, "Error registering callback 0\n");
+        qWarning()<<"Error registering ARRIVED callback";
         libusb_exit (NULL);
         return EXIT_FAILURE;
     }
@@ -202,7 +218,7 @@ int UsbServer::init()
     rc = libusb_hotplug_register_callback (NULL, LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, LIBUSB_HOTPLUG_ENUMERATE, vendor_id,
                                            product_id,class_id, detach_callback, this, &hp[1]);
     if (LIBUSB_SUCCESS != rc) {
-        fprintf (stderr, "Error registering callback 1\n");
+        qWarning()<<"Error registering LEFT callback";
         libusb_exit (NULL);
         return EXIT_FAILURE;
     }
@@ -226,7 +242,7 @@ void UsbServer::stop()
     libusb_exit (NULL);
 }
 
-void UsbServer::send(unsigned char* msg, unsigned int size, UsbDevice* dest)
+void UsbServer::send(unsigned char* msg, unsigned int size, libusb_device* dest)
 {
 
 }
